@@ -9,16 +9,13 @@ public class Task {
         setPriority(priority);
     }
 
-    public Task(Priority priority, String description, Person contactPerson) {
+    public Task(String description, Priority priority, Person contactPerson) {
         this(description, priority);
         assignContactPerson(contactPerson);
     }
 
-    private void assignContactPerson(Person contactPerson) {
-        if (contactPerson == null) {
-            throw new IllegalArgumentException("Contact person cannot be null");
-        }
-        this.contactPerson = contactPerson;
+    public void assignContactPerson(Person contactPerson) {
+        this.contactPerson = contactPerson; // can be null 0...1
     }
 
     public Priority getPriority() {
@@ -48,7 +45,7 @@ public class Task {
         return "Task{" +
                 "priority=" + priority +
                 ", description='" + description + '\'' +
+                ", contactPerson=" + contactPerson +
                 '}';
     }
-
 }
