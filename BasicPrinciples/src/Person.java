@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Person {
 
     private String name;
@@ -61,5 +63,17 @@ public class Person {
             throw new IllegalArgumentException("Email cannot be empty");
         }
         this.email = email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Objects.equals(email, person.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
     }
 }
