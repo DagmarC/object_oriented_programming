@@ -1,11 +1,24 @@
 public class Task {
     private Priority priority;
     private String description;
+    private Person contactPerson;
 
 
     public Task(String description, Priority priority) {
         setDescription(description);
         setPriority(priority);
+    }
+
+    public Task(Priority priority, String description, Person contactPerson) {
+        this(description, priority);
+        assignContactPerson(contactPerson);
+    }
+
+    private void assignContactPerson(Person contactPerson) {
+        if (contactPerson == null) {
+            throw new IllegalArgumentException("Contact person cannot be null");
+        }
+        this.contactPerson = contactPerson;
     }
 
     public Priority getPriority() {
