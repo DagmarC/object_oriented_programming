@@ -1,7 +1,7 @@
 public class Bishop extends Figure {
 
     public Bishop(Color color, Position position) {
-        super(color, "bishop", position);
+        super(color, "B", position);
     }
 
     @Override

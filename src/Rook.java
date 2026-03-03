@@ -1,7 +1,7 @@
 public class Rook extends Figure {
 
     public Rook(Color color, Position position) {
-        super(color, "rook", position);
+        super(color, "R", position);
     }
 
     @Override

@@ -1,7 +1,7 @@
 public class Knight extends Figure{
 
     public Knight(Color color, Position position) {
-        super(color, "knight", position);
+        super(color, "N", position);
     }
 
     @Override

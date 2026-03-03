@@ -58,4 +58,15 @@ public abstract class Figure implements MovementBehavior {
     public void setColor(Color color) {
         this.color = color;
     }
+
+    @Override
+    public String toString() {
+        String status = this.active ? "Active" : "Lost";
+        return String.format("[%s %s] at position (%d, %d) | Status: %s",
+                this.color,
+                this.name,
+                this.position.getX(),
+                this.position.getY(),
+                status);
+    }
 }

@@ -4,7 +4,7 @@ public class Queen extends Figure {
     private final Bishop bishop;
 
     public Queen(Color color, Position position) {
-        super(color, "queen", position);
+        super(color, "Q", position);
 
         // DRY principle: for movement validation
         bishop = new Bishop(Color.WHITE, this.getPosition());

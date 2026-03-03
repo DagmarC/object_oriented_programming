@@ -1,7 +1,7 @@
 public class Pawn extends Figure {
 
     public Pawn(Color color, Position position) {
-        super(color, "pawn", position);
+        super(color, "P", position);
     }
 
     @Override

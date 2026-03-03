@@ -1,7 +1,7 @@
 public class King extends Figure {
 
     public King(Color color, Position position) {
-        super(color, "king", position);
+        super(color, "K", position);
     }
 
     @Override
