@@ -1,0 +1,65 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+
+interface BankAccountPort {
+    +getTransactions(): List~Transaction~
+    +getBalance(): double
+    +getAccountNumber(): String
+    +getBankName(): String
+}
+
+abstract class Transaction {
+    -id: long
+    -amount: double
+    -date: String
+    -description: String
+    +isExpense(): boolean
+    +getSummary(): String
+}
+
+class SpendingTransaction extends Transaction {
+    -category: String
+    -merchantName: String
+    -isRecurring: boolean
+    +isExpense(): boolean
+}
+
+class IncomingTransaction extends Transaction {
+    -source: String
+    -isConfirmed: boolean
+    +isExpense(): boolean
+    +getNetAmount(): double
+}
+
+class FioAccount {
+    -transactions: List~Transaction~
+    +addTransaction(t: Transaction): void
+    +getTransactions(): List~Transaction~
+}
+
+class FioAdapter implements BankAccountPort {
+    -fioApi: FioApiClient
+    +getTransactions(): List~Transaction~
+    +getBalance(): double
+    +getAccountNumber(): String
+    +getBankName(): String
+}
+
+class FioApiClient {
+    -token: String
+    +fetchRawTransactions(): List
+}
+
+class SpendingTracker {
+    -port: BankAccountPort
+    +showReport(): void
+    +totalSpending(): double
+}
+
+FioAdapter *-- FioApiClient : creates
+FioAdapter ..> FioAccount : uses locally
+FioAccount *-- Transaction : owns
+SpendingTracker o-- BankAccountPort : port
+
+@enduml
