@@ -1,0 +1,29 @@
+{
+  "accountStatement": {
+    "info": {
+      "accountId": "2000000000",
+      "bankId": "2010",
+      "currency": "CZK",
+      "iban": "CZ1000000000002000000000",
+      "openingBalance": 1000.00,
+      "closingBalance": 1234.56
+    },
+    "transactionList": {
+      "transaction": [
+        {
+          "column22": {"value": 100000000, "name": "ID pohybu"},
+          "column0":  {"value": "2023-01-01+0100", "name": "Datum"},
+          "column1":  {"value": -2769.00, "name": "Objem"},
+          "column14": {"value": "CZK", "name": "Měna"},
+          "column2":  {"value": "2222233333", "name": "Protiúčet"},
+          "column3":  {"value": "2010", "name": "Kód banky"},
+          "column10": {"value": "IKEA CR", "name": "Název protiúčtu"},
+          "column7":  {"value": "Nákup IKEA", "name": "Uživatelská identifikace"},
+          "column8":  {"value": "Platba kartou", "name": "Typ"},
+          "column25": {"value": "Můj komentář", "name": "Komentář"},
+          "column17": {"value": 2102392862, "name": "ID pokynu"}
+        }
+      ]
+    }
+  }
+}

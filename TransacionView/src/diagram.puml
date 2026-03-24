@@ -3,33 +3,83 @@
 skinparam classAttributeIconSize 0
 
 interface BankAccountPort {
-    +getTransactions(): List~Transaction~
-    +getBalance(): double
+    +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
+    +getBalance(): BigDecimal
     +getAccountNumber(): String
-    +getBankName(): String
+    +getBankId(): String
+}
+
+interface BankApiClient {
+    +fetchAccountData(from: LocalDate, to: LocalDate): BankApiResponse
+}
+
+record BankApiResponse {
+    -accountInfo: AccountInfo
+    -rawTransactions: List~Map~String, Object~~
+}
+
+record AccountInfo {
+    accountId: String,
+    bankId: String,
+    iban: String
+    currency: Currency,
+    balance: BigDecimal
+}
+
+interface RowMapper {
+    +map(row: Map~String, Object~): T
 }
 
 abstract class Transaction {
     -id: long
-    -amount: double
-    -date: String
+    -date: LocalDateTime
+    -amount: BigDecimal
+    -currency: Currency
+    -sourceBankId: String
     -description: String
+    -message: String
+    +isExpense(): boolean
+    +isExpense(): boolean
+    +getSummary(): String
+    #{static} requirePositive(amount: BigDecimal): BigDecimal
+    #{static} requireNegative(amount: BigDecimal): BigDecimal
+}
+
+enum Currency {
+    CZK
+    EUR
+    USD
+    UNKNOWN
+}
+
+enum Category {
+    GROCERIES
+    LOANS
+    SUBSCRIPTIONS
+    RESTAURANTS
+    DRUG_STORE
+    HOME_FACILITIES
+    CLOTHES
+    KIDS_HOBBIES
+    PRESENTS
+    HOLIDAYS
+    PARTY
+    GARDEN_STUFF
+    OTHER
+}
+
+class SpendingTransaction extends Transaction {
+    -category: Category
+    -merchantName: String
+    -{static} UNKNOWN: String
     +isExpense(): boolean
     +getSummary(): String
 }
 
-class SpendingTransaction extends Transaction {
-    -category: String
-    -merchantName: String
-    -isRecurring: boolean
-    +isExpense(): boolean
-}
-
 class IncomingTransaction extends Transaction {
-    -source: String
-    -isConfirmed: boolean
     +isExpense(): boolean
-    +getNetAmount(): double
+    +getSummary(): String
+    +isConfirmed(): boolean
 }
 
 class FioAccount {
@@ -39,27 +89,63 @@ class FioAccount {
 }
 
 class FioAdapter implements BankAccountPort {
-    -fioApi: FioApiClient
-    +getTransactions(): List~Transaction~
-    +getBalance(): double
+    -fioApi: BankApiClient
+    -rowMapper: RowMapper~Transaction~
+    -cachedData: BankApiResponse
+    -cachedFrom: LocalDate
+    -cachedTo: LocalDate
+    -getFioData(from: LocalDate, to: LocalDate): BankApiResponse
+    +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
+    +getBalance(): BigDecimal
+    +getBankId(): String
     +getAccountNumber(): String
-    +getBankName(): String
+    -getAccountData(): BankApiResponse
 }
 
-class FioApiClient {
+class FioApiClient implements BankApiClient {
+    -{static} BASE_URL: String
+    -{static} DATE_FORMAT: DateTimeFormatter
     -token: String
-    +fetchRawTransactions(): List
+    -httpClient: HttpClient
+    -objectMapper: ObjectMapper
+    +FioApiClient(token: String)
+    +fetchAccountData(LocalDate from, LocalDate to):BankApiResponse
+    -fetch(LocalDate from, LocalDate to): String
+    -parseTransactions(raw: String): List~Map~String, Object~~
+    -parseAccountInfo(raw: String): AccountInfo
 }
+
+class HttpClient
 
 class SpendingTracker {
     -port: BankAccountPort
+    - from: LocalDate
+    - to: LocalDate
     +showReport(): void
-    +totalSpending(): double
+    +totalSpending(): BigDecimal
+    +totalIncome(): BigDecimal
 }
 
-FioAdapter *-- FioApiClient : creates
+FioAdapter .up.|> BankAccountPort
+FioAdapter o-- BankApiClient
 FioAdapter ..> FioAccount : uses locally
-FioAccount *-- Transaction : owns
+FioAdapter .right.> RowMapper : uses
+FioAdapter ..> BankApiResponse : caches
+
+FioAccount *-- Transaction
+Transaction --> Currency
+
+SpendingTransaction --> Category
+
 SpendingTracker o-- BankAccountPort : port
+
+BankAccountPort ..> Transaction : returns
+
+FioApiClient *-- HttpClient
+FioApiClient .up.|> BankApiClient
+
+BankApiClient ..> BankApiResponse : returns
+
+BankApiResponse --> AccountInfo : contains
 
 @enduml
