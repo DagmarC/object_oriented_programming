@@ -34,28 +34,28 @@ public class MockFioApiClientTest {
 
     @Test
     void fetchAccountData_returnsAccountId() {
-        assertEquals("2000000000", response.accountInfo().accountId());
+        assertEquals("2000000000", response.account().getAccountId());
     }
 
     @Test
     void fetchAccountData_returnsBankId() {
-        assertEquals("2010", response.accountInfo().bankId());
+        assertEquals("2010", response.account().getBankId());
     }
 
     @Test
     void fetchAccountData_returnsCurrency() {
-        assertEquals("CZK", response.accountInfo().currency().name());
+        assertEquals("CZK", response.account().getCurrency().name());
     }
 
     @Test
     void fetchAccountData_returnsBalance() {
-        assertEquals(0, response.accountInfo().balance()
+        assertEquals(0, response.account().getBalance()
                 .compareTo(new BigDecimal("1234.56")));
     }
 
     @Test
     void fetchAccountData_returnsIban() {
-        assertEquals("CZ1000000000002000000000", response.accountInfo().iban());
+        assertEquals("CZ1000000000002000000000", response.account().getIban());
     }
 
     // --- Transaction list ---
@@ -123,7 +123,6 @@ public class MockFioApiClientTest {
     }
 
     // --- Helper method ---
-
     private Object getResponseValueByKey(String key) {
         return response.rawTransactions().get(0).get(key);
     }

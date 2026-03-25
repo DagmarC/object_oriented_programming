@@ -1,5 +1,6 @@
 package com.cervenkova.model.transaction;
 
+import com.cervenkova.model.enums.Category;
 import com.cervenkova.model.enums.Currency;
 
 import java.math.BigDecimal;
@@ -11,10 +12,15 @@ public class IncomingTransaction extends Transaction {
                                LocalDateTime date,
                                BigDecimal amount,
                                Currency currency,
-                               String source,
+                               String accountId,
+                               String sourceBankId,
+                               String merchantName,
+                               String message,
+                               String type,
                                String description,
-                               String message) {
-        super(id, date, requirePositive(amount), currency, source, description, message);
+                               Category category) {
+
+        super(id, date, requirePositive(amount), currency, accountId, sourceBankId, merchantName, message, type, description, category);
     }
 
     @Override
@@ -25,14 +31,14 @@ public class IncomingTransaction extends Transaction {
     @Override
     public String getSummary() {
         String status = isConfirmed() ? "confirmed" : "pending";
-
-        return String.format("INCOME | %-20s | %8.2f %-4s | %-20s | %s",
-                getSourceBankId(), getAmount(), getCurrency(), getDescription(), status);
+        return formatSummary("INCOME", status);
     }
+
 
     /**
      * The transaction is considered to be confirmed if the date of the transaction is not in the future.
-     * */
+     *
+     */
     public boolean isConfirmed() {
         return !getDate().isAfter(LocalDateTime.now());
     }

@@ -1,25 +1,26 @@
 package com.cervenkova.port;
 
+import com.cervenkova.model.account.Account;
 import com.cervenkova.model.transaction.Transaction;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 
 /**
  * Every new bank integration = one new adapter that implements this.
- * com.cervenkova.port.BankAccountPort is the most important class.
- * Contract: "whatever claims to be a bank account must be able to do these four things."
- * It contains zero logic, zero data, zero implementation. It is just a list of promises.
+ * BankAccountPort is the most important class.
+ * Contract: "whatever claims to be a bank accountInfo must be able to do these four things."
  */
 public interface BankAccountPort {
 
+    /**
+     * Získa kompletný bankový účet (vrátane zostatku, meny a transakcií) za zvolené obdobie.
+     * * @param from začiatočný dátum (vrátane)
+     * @param to konečný dátum (vrátane)
+     * @return Hotový doménový objekt Account
+     */
+
     List<Transaction> getTransactions(LocalDate from, LocalDate to);
-
-    BigDecimal getBalance();
-
-    String getAccountNumber();
-
-    String getBankId();
+    Account getAccountInfo(LocalDate from, LocalDate to);
 }

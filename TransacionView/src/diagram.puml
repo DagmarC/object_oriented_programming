@@ -2,29 +2,69 @@
 
 skinparam classAttributeIconSize 0
 
+class SpendingTracker {
+    -port: BankAccountPort
+    -from: LocalDate
+    -to: LocalDate
+    +showReport(): void
+}
+
 interface BankAccountPort {
     +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
-    +getBalance(): BigDecimal
-    +getAccountNumber(): String
-    +getBankId(): String
+    +getAccountInfo(): Account
+}
+
+class FioAdapter implements BankAccountPort {
+    -fioApi: BankApiClient
+    -rowMapper: RowMapper~Transaction~
+    -cachedData: BankApiResponse
+    -cachedFrom: LocalDate
+    -cachedTo: LocalDate
+    -getFioData(from: LocalDate, to: LocalDate): BankApiResponse
+    +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
+    -getAccountData(): BankApiResponse
 }
 
 interface BankApiClient {
-    +fetchAccountData(from: LocalDate, to: LocalDate): BankApiResponse
+    + fetchAccountData(from: LocalDate, to: LocalDate): BankApiResponse
+}
+
+class FioApiClient {
+    - {static} BASE_URL: String
+    - {static} DATE_FORMAT: DateTimeFormatter
+    - token: String
+    - httpClient: HttpClient
+    - objectMapper: ObjectMapper
+
+    + FioApiClient(token: String)
+    + fetchAccountData(from: LocalDate, to: LocalDate): BankApiResponse
+    - fetch(from: LocalDate, to: LocalDate): String
+    - parseTransactions(accountStatement: JsonNode): List<Map<String, Object>>
+    - parseAccountInfo(accountStatement: JsonNode): Account
+}
+
+class HttpClient
+
+
+class Account {
+    -accountId: String,
+    -bankId: String,
+    -iban: String
+    -currency: Currency,
+    -balance: BigDecimal
+    -transactions: List~Transaction~
+    +addTransaction(t: Transaction): void
+    +getTransactions(): List~Transaction~
+    +totalSpending(): BigDecimal
+    +totalIncome(): BigDecimal
+    +getAccountNumber(): String
 }
 
 record BankApiResponse {
-    -accountInfo: AccountInfo
+    -accountInfo: Account
     -rawTransactions: List~Map~String, Object~~
 }
 
-record AccountInfo {
-    accountId: String,
-    bankId: String,
-    iban: String
-    currency: Currency,
-    balance: BigDecimal
-}
 
 interface RowMapper {
     +map(row: Map~String, Object~): T
@@ -35,15 +75,30 @@ abstract class Transaction {
     -date: LocalDateTime
     -amount: BigDecimal
     -currency: Currency
+    -accountId: String
     -sourceBankId: String
-    -description: String
+    -merchantName: String
     -message: String
-    +isExpense(): boolean
-    +isExpense(): boolean
-    +getSummary(): String
+    -type: String
+    -description: String
+    +{abstract}isExpense(): boolean
+    +{abstract}getSummary(): String
+    #formatSummary(type: String, extra: String): String
     #{static} requirePositive(amount: BigDecimal): BigDecimal
     #{static} requireNegative(amount: BigDecimal): BigDecimal
 }
+
+class SpendingTransaction extends Transaction {
+    +isExpense(): boolean
+    +getSummary(): String
+}
+
+class IncomingTransaction extends Transaction {
+    +isExpense(): boolean
+    +getSummary(): String
+    +isConfirmed(): boolean
+}
+
 
 enum Currency {
     CZK
@@ -64,88 +119,32 @@ enum Category {
     PRESENTS
     HOLIDAYS
     PARTY
-    GARDEN_STUFF
+    GARDEN_STUFF,
+    INCOME,
     OTHER
 }
 
-class SpendingTransaction extends Transaction {
-    -category: Category
-    -merchantName: String
-    -{static} UNKNOWN: String
-    +isExpense(): boolean
-    +getSummary(): String
-}
-
-class IncomingTransaction extends Transaction {
-    +isExpense(): boolean
-    +getSummary(): String
-    +isConfirmed(): boolean
-}
-
-class FioAccount {
-    -transactions: List~Transaction~
-    +addTransaction(t: Transaction): void
-    +getTransactions(): List~Transaction~
-}
-
-class FioAdapter implements BankAccountPort {
-    -fioApi: BankApiClient
-    -rowMapper: RowMapper~Transaction~
-    -cachedData: BankApiResponse
-    -cachedFrom: LocalDate
-    -cachedTo: LocalDate
-    -getFioData(from: LocalDate, to: LocalDate): BankApiResponse
-    +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
-    +getBalance(): BigDecimal
-    +getBankId(): String
-    +getAccountNumber(): String
-    -getAccountData(): BankApiResponse
-}
-
-class FioApiClient implements BankApiClient {
-    -{static} BASE_URL: String
-    -{static} DATE_FORMAT: DateTimeFormatter
-    -token: String
-    -httpClient: HttpClient
-    -objectMapper: ObjectMapper
-    +FioApiClient(token: String)
-    +fetchAccountData(LocalDate from, LocalDate to):BankApiResponse
-    -fetch(LocalDate from, LocalDate to): String
-    -parseTransactions(raw: String): List~Map~String, Object~~
-    -parseAccountInfo(raw: String): AccountInfo
-}
-
-class HttpClient
-
-class SpendingTracker {
-    -port: BankAccountPort
-    - from: LocalDate
-    - to: LocalDate
-    +showReport(): void
-    +totalSpending(): BigDecimal
-    +totalIncome(): BigDecimal
-}
-
-FioAdapter .up.|> BankAccountPort
-FioAdapter o-- BankApiClient
-FioAdapter ..> FioAccount : uses locally
-FioAdapter .right.> RowMapper : uses
-FioAdapter ..> BankApiResponse : caches
-
-FioAccount *-- Transaction
-Transaction --> Currency
-
-SpendingTransaction --> Category
 
 SpendingTracker o-- BankAccountPort : port
 
 BankAccountPort ..> Transaction : returns
 
+FioAdapter .up.|> BankAccountPort
+FioAdapter o-- BankApiClient
+FioAdapter .right.> RowMapper : uses
+FioAdapter ..> BankApiResponse : caches
+
+Account *-- Transaction
+
+Transaction --> Currency
+
+SpendingTransaction --> Category
+
 FioApiClient *-- HttpClient
-FioApiClient .up.|> BankApiClient
+BankApiClient <|.. FioApiClient
 
 BankApiClient ..> BankApiResponse : returns
 
-BankApiResponse --> AccountInfo : contains
+BankApiResponse --> Account : contains
 
 @enduml

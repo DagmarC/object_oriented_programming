@@ -1,18 +1,20 @@
 package com.cervenkova.adapter;
 
 import com.cervenkova.api.BankApiClient;
+import com.cervenkova.model.account.Account;
 import com.cervenkova.model.account.BankApiResponse;
 import com.cervenkova.model.transaction.Transaction;
 import com.cervenkova.port.BankAccountPort;
 import com.cervenkova.mapper.RowMapper;
 
-
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
-// translation: maps Fio world to the App world, knows FioApiClient and what com.cervenkova.port.BankAccountPort requires
+
+/**
+ * Maps Fio world into the Application world, knows FioApiClient and what BankAccountPort requires.
+ * It also caches response from Fio to prevent repeating GET requests (by date period).
+ * */
 public class FioAdapter implements BankAccountPort {
 
     private final BankApiClient fioApi;
@@ -28,7 +30,6 @@ public class FioAdapter implements BankAccountPort {
     }
 
     private BankApiResponse getFioData(LocalDate from, LocalDate to) {
-        // If the cache is empty or the date is different - GET new response
         if (cachedData == null || !from.equals(cachedFrom) || !to.equals(cachedTo)) {
             cachedData = fioApi.fetchAccountData(from, to);
             cachedFrom = from;
@@ -40,32 +41,15 @@ public class FioAdapter implements BankAccountPort {
 
     @Override
     public List<Transaction> getTransactions(LocalDate from, LocalDate to) {
-        FioAccount account = new FioAccount(); // composition
-        for (Map<String, Object> row : getFioData(from, to).rawTransactions()) {
-            account.addTransaction(rowMapper.map(row));
-        }
-        return account.getTransactions();
+        return getFioData(from, to).rawTransactions()
+                .stream()
+                .map(rowMapper::map)
+                .toList();
     }
 
     @Override
-    public BigDecimal getBalance() {
-        return getAccountData().accountInfo().balance();
-    }
-
-    @Override
-    public String getAccountNumber() {
-        return getAccountData().accountInfo().accountId() + "/" + cachedData.accountInfo().bankId();
-    }
-
-    @Override
-    public String getBankId() {
-        return getAccountData().accountInfo().bankId();
-    }
-
-    private BankApiResponse getAccountData() {
-        return getFioData(
-                LocalDate.now().minusDays(1),
-                LocalDate.now()
-        );
+    public Account getAccountInfo(LocalDate from, LocalDate to) {
+        BankApiResponse apiResponse = getFioData(from, to);
+        return apiResponse.account();
     }
 }

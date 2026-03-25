@@ -1,6 +1,6 @@
 package com.cervenkova.api;
 
-import com.cervenkova.model.account.AccountInfo;
+import com.cervenkova.model.account.Account;
 import com.cervenkova.model.account.BankApiResponse;
 import com.cervenkova.model.enums.Currency;
 
@@ -14,17 +14,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map;
 
-// HTTP: data access, talks to Fio API (URLs, tokens, raw data)
 
 /**
- * FIO RAW TRANSACTION DETAIL
- *
- *
+ * Raw response from Fio.
  */
 public class FioApiClient implements BankApiClient {
 
@@ -49,15 +45,21 @@ public class FioApiClient implements BankApiClient {
     @Override
     public BankApiResponse fetchAccountData(LocalDate from, LocalDate to) {
         String raw = fetch(from, to);
+        try {
+            JsonNode root = objectMapper.readTree(raw); // Len RAZ
+            JsonNode accountStatement = root.path("accountStatement");
 
-        AccountInfo accountInfo = parseAccountInfo(raw);
-        List<Map<String, Object>> transactions = parseTransactions(raw);
+            Account account = parseAccountInfo(accountStatement);
+            List<Map<String, Object>> transactions = parseTransactions(accountStatement);
 
-        return new BankApiResponse(accountInfo, transactions);
+            return new BankApiResponse(account, transactions);
+        } catch (Exception e) {
+            throw new RuntimeException("ERROR: Parsing JSON tree.", e);
+        }
     }
 
     private String fetch(LocalDate from, LocalDate to) {
-        String url = String.format(BASE_URL, token, from, to);
+        String url = String.format(BASE_URL, token, from.format(DATE_FORMAT), to.format(DATE_FORMAT));
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
 
@@ -68,82 +70,49 @@ public class FioApiClient implements BankApiClient {
             return response.body();
 
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("ERROR: Fetching data from FioAPI: "+ e);
+            throw new RuntimeException("ERROR: Fetching data from FioAPI: " + e);
         }
     }
 
-    private List<Map<String, Object>> parseTransactions(String raw) {
+    private List<Map<String, Object>> parseTransactions(JsonNode accountStatement) {
 
-        try {
-           JsonNode transactions = objectMapper.readTree(raw)
-            .path("accountStatement")
-                   .path("transactionList")
-                   .path("transaction");
+        JsonNode transactionsNode = accountStatement.path("transactionList").path("transaction");
+        List<Map<String, Object>> transactionList = new ArrayList<>();
 
-           List<Map<String, Object>> transactionList = new ArrayList<>();
+        if (transactionsNode.isArray()) {
+            for (JsonNode tx : transactionsNode) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("id", getString(tx, "column22"));
+                row.put("date", getString(tx, "column0"));
+                row.put("amount", getString(tx, "column1"));
+                row.put("currency", getString(tx, "column14"));
+                row.put("accountId", getString(tx, "column2"));
+                row.put("sourceBankId", getString(tx, "column3"));
+                row.put("merchantName", getString(tx, "column10"));
+                row.put("message", getString(tx, "column7"));
+                row.put("type", getString(tx, "column8"));
+                row.put("description", getString(tx, "column25"));
 
-           for (JsonNode tx : transactions) {
-               Map<String, Object> row = new HashMap<>();
-               row.put("id",           getLong(tx,   "column22")); // ID pohybu
-               row.put("date",         getDate(tx,   "column0"));  // Datum
-               row.put("amount",       getDouble(tx, "column1"));  // Objem
-               row.put("currency",     getString(tx, "column14")); // Měna
-               row.put("accountId",    getString(tx, "column2"));  // Protiúčet
-               row.put("sourceBankId", getString(tx, "column3"));  // Kód banky
-               row.put("merchantName", getString(tx, "column10")); // Název protiúčtu
-               row.put("message",      getString(tx, "column7"));  // Uživatelská identifikace
-               row.put("type",         getString(tx, "column8"));  // Typ platby
-               row.put("description",  getString(tx, "column25")); // Komentář
-
-               transactionList.add(row);
-           }
-            return transactionList;
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse transactions", e);
+                transactionList.add(row);
+            }
         }
+        return transactionList;
     }
 
-    private AccountInfo parseAccountInfo(String raw) {
-        try {
-            JsonNode info = objectMapper.readTree(raw)
-                    .path("accountStatement")
-                    .path("info");
-
-            return new AccountInfo(
-                    info.path("accountId").asText(),
-                    info.path("bankId").asText(),
-                    info.path("iban").asText(),
-                    Currency.valueOf(info.path("currency").asText()),
-                    BigDecimal.valueOf(info.path("closingBalance").asDouble())
-            );
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse account info", e);
-        }
+    private Account parseAccountInfo(JsonNode accountStatement) {
+        JsonNode info = accountStatement.path("info");
+        return new Account(
+                info.path("accountId").asText(),
+                info.path("bankId").asText(),
+                info.path("iban").asText(),
+                Currency.valueOf(info.path("currency").asText().toUpperCase()),
+                new BigDecimal(info.path("closingBalance").asText())
+        );
     }
 
     // --- Helper methods ---
-
     private String getString(JsonNode tx, String col) {
         JsonNode node = tx.path(col).path("value");
         return node.isNull() || node.isMissingNode() ? null : node.asText().trim();
     }
-
-    private double getDouble(JsonNode tx, String col) {
-        JsonNode node = tx.path(col).path("value");
-        return node.isNull() || node.isMissingNode() ? 0.0 : node.asDouble();
-    }
-
-    private long getLong(JsonNode tx, String col) {
-        JsonNode node = tx.path(col).path("value");
-        return node.isNull() || node.isMissingNode() ? 0L : node.asLong();
-    }
-
-    private LocalDateTime getDate(JsonNode tx, String col) {
-        String val = getString(tx, col);
-        if (val == null) return null;
-        return LocalDate.parse(val.substring(0, 10), DATE_FORMAT).atStartOfDay();
-    }
-
 }

@@ -13,5 +13,6 @@ public enum Category {
     HOLIDAYS,
     PARTY,
     GARDEN_STUFF,
+    INCOME,
     OTHER,
 }

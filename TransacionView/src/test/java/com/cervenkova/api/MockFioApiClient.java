@@ -1,6 +1,6 @@
 package com.cervenkova.api;
 
-import com.cervenkova.model.account.AccountInfo;
+import com.cervenkova.model.account.Account;
 import com.cervenkova.model.account.BankApiResponse;
 import com.cervenkova.model.enums.Currency;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,9 +28,9 @@ public class MockFioApiClient implements BankApiClient {
     @Override
     public BankApiResponse fetchAccountData(LocalDate from, LocalDate to) {
         String raw = loadJson();
-        AccountInfo accountInfo = parseAccountInfo(raw);
+        Account account = parseAccountInfo(raw);
         List<Map<String, Object>> transactions = parseTransactions(raw);
-        return new BankApiResponse(accountInfo, transactions);
+        return new BankApiResponse(account, transactions);
     }
 
     private String loadJson() {
@@ -44,13 +44,13 @@ public class MockFioApiClient implements BankApiClient {
         }
     }
 
-    private AccountInfo parseAccountInfo(String raw) {
+    private Account parseAccountInfo(String raw) {
         try {
             JsonNode info = objectMapper.readTree(raw)
                     .path("accountStatement")
                     .path("info");
 
-            return new AccountInfo(
+            return new Account(
                     info.path("accountId").asText(),
                     info.path("bankId").asText(),
                     info.path("iban").asText(),
@@ -58,7 +58,7 @@ public class MockFioApiClient implements BankApiClient {
                     BigDecimal.valueOf(info.path("closingBalance").asDouble())
             );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse account info", e);
+            throw new RuntimeException("Failed to parse accountInfo info", e);
         }
     }
 
