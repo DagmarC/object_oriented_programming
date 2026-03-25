@@ -12,13 +12,18 @@ public class Account {
     private final String accountId;
     private final String bankId;
     private final String iban;
-    private Currency currency;
-    private BigDecimal balance;
-    private List<Transaction> transactions;
+    private final Currency currency;
+    private final BigDecimal balance;
+    private final List<Transaction> transactions;
 
     public Account(String accountId, String bankId, String iban, Currency currency, BigDecimal balance) {
+        if (accountId == null || accountId.isBlank()) throw new IllegalArgumentException("AccountId cannot be null.");
+        if (iban == null || iban.isBlank()) throw new IllegalArgumentException("Iban cannot be null.");
+        if (currency == null) throw new IllegalArgumentException("Currency cannot be null.");
+        if (balance == null) throw new IllegalArgumentException("Balance cannot be null.");
+
         this.accountId = accountId;
-        this.bankId = bankId;
+        this.bankId = bankId; // optional
         this.iban = iban;
         this.currency = currency;
         this.balance = balance;

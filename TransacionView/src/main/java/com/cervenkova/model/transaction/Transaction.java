@@ -122,11 +122,13 @@ public abstract class Transaction {
     }
 
     protected static BigDecimal requirePositive(BigDecimal amount) {
+        if (amount == null) throw new IllegalArgumentException("Amount cannot be null");
         if (amount.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Amount cannot be negative");
         return amount;
     }
 
     protected static BigDecimal requireNegative(BigDecimal amount) {
+        if (amount == null) throw new IllegalArgumentException("Amount cannot be null");
         if (amount.compareTo(BigDecimal.ZERO) >= 0) throw new IllegalArgumentException("Amount cannot be positive");
         return amount;
     }

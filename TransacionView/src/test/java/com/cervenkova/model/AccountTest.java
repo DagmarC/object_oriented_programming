@@ -30,6 +30,76 @@ public class AccountTest {
     }
 
     @Test
+    void constructor_validParameters_createsAccountAndInitializesFields() {
+        String expectedAccountId = "999888";
+        String expectedBankId = "0900";
+        String expectedIban = "SK9998880900";
+        Currency expectedCurrency = Currency.USD;
+        BigDecimal expectedBalance = new BigDecimal("500.50");
+
+        // Act
+        Account newAccount = new Account(
+                expectedAccountId,
+                expectedBankId,
+                expectedIban,
+                expectedCurrency,
+                expectedBalance
+        );
+
+        assertEquals(expectedAccountId, newAccount.getAccountId());
+        assertEquals(expectedBankId, newAccount.getBankId());
+        assertEquals(expectedIban, newAccount.getIban());
+        assertEquals(expectedCurrency, newAccount.getCurrency());
+        assertEquals(expectedBalance, newAccount.getBalance());
+
+        assertNotNull(newAccount.getTransactions());
+        assertTrue(newAccount.getTransactions().isEmpty());
+    }
+
+    @Test
+    void constructor_nullAccountId_throwsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new Account(null, "222", "SK111", Currency.EUR, BigDecimal.ZERO)
+        );
+        assertEquals("AccountId cannot be null.", exception.getMessage());
+    }
+
+    @Test
+    void constructor_nullIban_throwsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new Account("111", "222", null, Currency.EUR, BigDecimal.ZERO)
+        );
+        assertEquals("Iban cannot be null.", exception.getMessage());
+    }
+
+    @Test
+    void constructor_nullCurrency_throwsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new Account("111", "222", "SK111", null, BigDecimal.ZERO)
+        );
+        assertEquals("Currency cannot be null.", exception.getMessage());
+    }
+
+    @Test
+    void constructor_nullBalance_throwsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new Account("111", "222", "SK111", Currency.EUR, null)
+        );
+        assertEquals("Balance cannot be null.", exception.getMessage());
+    }
+
+    @Test
+    void constructor_nullBankId_optional() {
+        Account a = new Account("111", null, "111", Currency.EUR, BigDecimal.ZERO);
+        assertNotNull(a);
+        assertNull(a.getBankId());
+    }
+
+    @Test
     void createIncomingTransaction_valid() {
         assertNotNull(createIncomingTransaction(new BigDecimal(12)), "Transaction created");
     }

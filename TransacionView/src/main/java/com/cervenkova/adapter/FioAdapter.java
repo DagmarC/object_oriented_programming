@@ -50,6 +50,12 @@ public class FioAdapter implements BankAccountPort {
     @Override
     public Account getAccountInfo(LocalDate from, LocalDate to) {
         BankApiResponse apiResponse = getFioData(from, to);
-        return apiResponse.account();
+        Account account = apiResponse.account();
+
+        apiResponse.rawTransactions().stream()
+                .map(rowMapper::map)
+                .forEach(account::addTransaction);
+
+        return account;
     }
 }

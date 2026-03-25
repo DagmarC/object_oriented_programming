@@ -34,10 +34,8 @@ public class IncomingTransaction extends Transaction {
         return formatSummary("INCOME", status);
     }
 
-
     /**
      * The transaction is considered to be confirmed if the date of the transaction is not in the future.
-     *
      */
     public boolean isConfirmed() {
         return !getDate().isAfter(LocalDateTime.now());

@@ -33,6 +33,7 @@ public class SpendingTracker {
         System.out.println("Total income: " + account.totalIncome());
 
         List<Transaction> transactions = account.getTransactions();
+        System.out.println("Total transactions: " + transactions.size());
         transactions.forEach(t -> System.out.println(t.getSummary()));
     }
 }
