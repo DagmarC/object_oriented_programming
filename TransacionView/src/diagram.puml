@@ -11,7 +11,7 @@ class SpendingTracker {
 
 interface BankAccountPort {
     +getTransactions(from: LocalDate, to: LocalDate): List~Transaction~
-    +getAccountInfo(): Account
+    +getAccountInfo(from: LocalDate, to: LocalDate): Account
 }
 
 class FioAdapter implements BankAccountPort {
