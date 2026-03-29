@@ -15,12 +15,9 @@ import java.util.*;
 public interface BankAccountPort {
 
     /**
-     * Získa kompletný bankový účet (vrátane zostatku, meny a transakcií) za zvolené obdobie.
-     * * @param from začiatočný dátum (vrátane)
-     * @param to konečný dátum (vrátane)
-     * @return Hotový doménový objekt Account
+     * Get complete bank account information and transactions at given period..
+     * @return Account object
      */
-
     List<Transaction> getTransactions(LocalDate from, LocalDate to);
     Account getAccountInfo(LocalDate from, LocalDate to);
 }
