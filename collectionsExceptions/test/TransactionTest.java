@@ -21,7 +21,7 @@ public class TransactionTest {
 
     @Test
     public void createTransaction() {
-        Transaction actual = new Transaction(ID, ACCOUNT_ID, SOURCE_BANK_ID, AMOUNT, DEFAULT_CURRENCY, LocalDateTime.now(), DEFAULT_DESCRIPTION );
+        Transaction actual = new Transaction(ID, ACCOUNT_ID, SOURCE_BANK_ID, AMOUNT, DEFAULT_CURRENCY, LocalDateTime.now().plusDays(1), DEFAULT_DESCRIPTION );
 
         assertEquals(ID, actual.getId());
         assertEquals(ACCOUNT_ID, actual.getAccountId());

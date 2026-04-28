@@ -1,6 +1,5 @@
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -8,13 +7,14 @@ import java.util.Objects;
  * For testing purposes. Tre transaction class from my previous impl was abstract class that could be either incoming or outcoming.
  */
 public class Transaction {
+    public static final String MSG_DEFAULT = "msg: default";
 
     // region Comparator static classes
 
-    public static class byAmountComparator implements Comparator<Transaction> {
+    public static class ByAmountComparator implements Comparator<Transaction> {
 
         private final SortOrder sortOrder;
-        public byAmountComparator(SortOrder sortOrder) {
+        public ByAmountComparator(SortOrder sortOrder) {
             this.sortOrder = sortOrder;
         }
 
@@ -30,10 +30,10 @@ public class Transaction {
         }
     }
 
-    public static class byDateComparator implements Comparator<Transaction> {
+    public static class ByDateComparator implements Comparator<Transaction> {
         private final SortOrder sortOrder;
 
-        public byDateComparator(SortOrder sortOrder) {
+        public ByDateComparator(SortOrder sortOrder) {
             this.sortOrder = sortOrder;
         }
 
@@ -105,7 +105,7 @@ public class Transaction {
 
     public Transaction(long id, String accountId, String sourceBankId, BigDecimal amount,
                        Currency currency, LocalDateTime date, String description) {
-        this(id, accountId, sourceBankId, amount, Category.OTHER, currency, date, description, "", "msg: default", "");
+        this(id, accountId, sourceBankId, amount, Category.OTHER, currency, date, description, "", MSG_DEFAULT, "");
     }
 
     // endregion
@@ -178,34 +178,8 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return String.format("[%s] %-8s %-4s | %s%s",
-                date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                amount.abs(),
-                currency,
-                description != null ? description : "-",
-                message != null ? " (" + message + ")" : "");
-    }
-
-    protected static BigDecimal requirePositive(BigDecimal amount) {
-        if (amount == null) throw new IllegalArgumentException("Amount cannot be null");
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Amount cannot be negative");
-        return amount;
-    }
-
-    protected static BigDecimal requireNegative(BigDecimal amount) {
-        if (amount == null) throw new IllegalArgumentException("Amount cannot be null");
-        if (amount.compareTo(BigDecimal.ZERO) >= 0) throw new IllegalArgumentException("Amount cannot be positive");
-        return amount;
-    }
-
-    protected String formatSummary(String type, String extra) {
-        return String.format("%-8s | %-20s | %8.2f %-4s | %-20s | %s",
-                type,
-                getDate(),
-                getAmount(),
-                getCurrency(),
-                getDescription() != null ? getDescription() : "-",
-                extra
+        return String.format("T: %-6s/%4s | %8.2f %-4s | %-20s",
+                getAccountId(), getSourceBankId(), getAmount(), getCurrency(), getDate()
         );
     }
 
