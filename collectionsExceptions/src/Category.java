@@ -1,0 +1,16 @@
+public enum Category {
+    GROCERIES,
+    LOANS,
+    SUBSCRIPTIONS,
+    RESTAURANTS,
+    DRUG_STORE,
+    HOME_FACILITIES,
+    CLOTHES,
+    KIDS_HOBBIES,
+    PRESENTS,
+    HOLIDAYS,
+    PARTY,
+    GARDEN_STUFF,
+    INCOME,
+    OTHER,
+}
