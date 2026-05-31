@@ -1,0 +1,1 @@
+public record Course(String code, String title, Lecturer lecturer) {}
