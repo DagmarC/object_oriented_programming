@@ -2,34 +2,49 @@ import java.util.*;
 
 public class Student {
 
-    private String studyNumber;
-    private String name;
+    private final String studyNumber;
+    private final String name;
 
-    private Set<Course> enrolledCourses = new HashSet<>();
-    private Map<Course, Grade> courseGrades = new HashMap<>();
+    private final Set<Course> enrolledCourses = new HashSet<>();
+    private final Map<Course, Grade> courseGrades = new HashMap<>();
 
     public Student(String studyNumber, String name) {
-        if (studyNumber == null || studyNumber.isBlank()) {
-            throw new IllegalArgumentException("StudyNumber cannot be null.");
-        }
+        Objects.requireNonNull(studyNumber, "Student number name cannot be null");
+        Objects.requireNonNull(name, "Student name cannot be null");
+
+        if (studyNumber.isBlank()) {throw new IllegalArgumentException("Student number cannot be blank");}
+        if (name.isBlank()) {throw new IllegalArgumentException("Student name cannot be blank");}
+
         this.studyNumber = studyNumber;
+        this.name = name;
     }
 
     public void enrollCourse(Course course) {
-        if (course == null) {
-            throw new IllegalArgumentException("Course cannot be null.");
-        }
+        Objects.requireNonNull(course, "Course cannot be null");
         enrolledCourses.add(course);
     }
 
+    public boolean isEnrolledIn(Course course) {
+        Objects.requireNonNull(course, "Course cannot be null");
+        return enrolledCourses.contains(course);
+    }
+
+    public boolean hasGradeInCourse(Course course) {
+        Objects.requireNonNull(course, "Course cannot be null.");
+        return courseGrades.containsKey(course);
+    }
+
     public void addGradeToCourse(Course course, Grade grade) {
-        if (!enrolledCourses.contains(course)) {
-            throw new IllegalArgumentException("Student is not enrolled in this course: " + course);
-        }
-        if (courseGrades.containsKey(course)) {
-            throw new IllegalArgumentException("Student has got grade already: " + course + ": " + courseGrades.get(course).value());
-        }
         courseGrades.put(course, grade);
+    }
+
+    public void updateGrade(Course course, Grade grade) {
+        courseGrades.put(course, grade);
+    }
+
+    public Optional<Grade> getGradeFromCourse(Course course) {
+        Objects.requireNonNull(course, "Course cannot be null.");
+        return Optional.ofNullable(courseGrades.get(course));
     }
 
     public Set<Course> getEnrolledCourses() {
